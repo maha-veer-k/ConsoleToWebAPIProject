@@ -12,42 +12,63 @@ namespace ConsoleToWebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddTransient<MyCustomMiddleware>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            app.Use(async (context, next) =>
             {
-                app.UseDeveloperExceptionPage();
-            }
+                await context.Response.WriteAsync("Hello from 1st middlewar. -> \n");
+                await next();
+                await context.Response.WriteAsync("Hello from 1st middlewar. <- \n");
+            });
 
-            // app.Use(async (context, next) =>
+            app.UseMiddleware<MyCustomMiddleware>();
+
+            /*app.Map("/maptest", MyCustomMiddleware)*/;
+
+            //app.Map("/auth", a =>
             //{
-            //    await context.Response.WriteAsync("hello from middleware1 -> \n");
-            //    await next();
-            //    await context.Response.WriteAsync("hello from middleware1 <- \n");
+            //    a.Use(async (context, next) =>
+            //    {
+            //        await context.Response.WriteAsync("New branch for auth");
+            //        await next();
+            //    });
             //});
 
-            // //app.Map("/custom", MyCustomMiddleware);
+            app.Run(async (context) =>
+            {
+                await context.Response.WriteAsync("Hello from Run() Middleware \n");
+            });
 
-            // app.Use(async (context, next) =>
-            // {
-            //     await context.Response.WriteAsync("hello from middleware2 -> \n");
-            //     await next();
-            //     await context.Response.WriteAsync("hello from middleware2 <- \n");
-            // });
+            //app.Use(async (context, next) =>
+            //{
+            //    await context.Response.WriteAsync("hello from middleware2 -> \n");
+            //    await next();
+            //    await context.Response.WriteAsync("hello from middleware2 <- \n");
+            //}); 
 
-            // app.Run(async context =>
-            // {
-            //     await context.Response.WriteAsync("Run method execution \n");
-            // });
+            //private static void ConfigureMapping(IApplicationBuilder app) => 
+
+            //app.Run(async context =>
+            //{
+            //    await context.Response.WriteAsync("Run method execution \n");
+            //});
+
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+
+
 
             //app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllers();
+            //});
             //app.UseEndpoints(endpoints =>
             //{
             //    endpoints.MapGet("/", async context =>
@@ -65,12 +86,13 @@ namespace ConsoleToWebApi
             //});
         }
 
-        private void MyCustomMiddleware(IApplicationBuilder app)
+
+
+        private  void MyCustomMiddleware(IApplicationBuilder app)
         {
-            app.Use(async (context, next) =>
+            app.Run(async (context) =>
             {
-                await context.Response.WriteAsync("This is a custom middleware -> \n");
-                await next();
+                await context.Response.WriteAsync("This is a Map middleware -> \n");
             });
         }
     }
